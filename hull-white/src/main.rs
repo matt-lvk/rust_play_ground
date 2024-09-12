@@ -1,13 +1,11 @@
 extern crate ndarray;
-extern crate plotters;
 extern crate rand;
 
 use ndarray::prelude::*;
-use plotters::prelude::*;
 use rand_distr::{Normal, Distribution};
 use rand::prelude::*;
 
-// mod data_transform_filter;
+mod plotter;
 
 struct HullWhite {
     nsim : i32,
@@ -33,26 +31,6 @@ fn wiener_lattice_generator(nsim: i32, T: usize, dt: f64) -> Array2<f64> {
     return w;
 }
 
-fn plot_multi_curve(t: Array1<f64>, r: Array2<f64>) {
-    let root = BitMapBackend::new("plot.png", (640, 480)).into_drawing_area();
-    root.fill(&WHITE).unwrap();
-
-    let mut chart = ChartBuilder::on(&root)
-        .caption("Short Rate", ("sans-serif", 50).into_font())
-        .margin(5)
-        .x_label_area_size(40)
-        .y_label_area_size(40)
-        .build_ranged(0f64..1f64, -0.1f64..0.1f64)
-        .unwrap();
-
-    chart.configure_mesh().draw().unwrap();
-
-    for i in 0..r.shape()[0] {
-        let data: Vec<(f64, f64)> = t.iter().zip(r.row(i).iter()).map(|(x, y)| (*x, *y)).collect();
-        chart.draw_series(LineSeries::new(data, &BLACK)).unwrap();
-    }
-}
-
 fn short_rate(hull_white: HullWhite, w: Array2<f64>) -> Array2<f64> {
     let mut r: Array2<f64> = Array::zeros((hull_white.nsim as usize, hull_white.T));
     for i in 0..hull_white.nsim {
@@ -68,7 +46,7 @@ fn short_rate(hull_white: HullWhite, w: Array2<f64>) -> Array2<f64> {
 fn main() {
     println!("Start");
     let hull_white = HullWhite {
-        nsim: 1000,
+        nsim: 10000,
         a: 0.1,
         b: 1.0,
         sigma: 0.1,
@@ -77,10 +55,12 @@ fn main() {
     };
 
     let t_linspace: Array1<f64> = Array::linspace(0.0, 1.0, hull_white.T);
-    let wiener_mat = wiener_lattice_generator(hull_white.nsim, hull_white.T, hull_white.dt);
-    let short_rate_array = short_rate(hull_white, wiener_mat);
+    let wiener_mat: Array2<f64> = wiener_lattice_generator(hull_white.nsim, hull_white.T, hull_white.dt);
+    let short_rate_array: Array2<f64> = short_rate(hull_white, wiener_mat);
 
-    println!("t: {}", short_rate_array);
+    let expected_rate: Array1<f64> = short_rate_array.mean_axis(Axis(0)).unwrap();
 
-    plot_multi_curve(t_linspace, short_rate_array);
+    println!("t: {}", expected_rate);
+
+    // plotter::plot_single_graph(t_linspace, short_rate_array);
 }
