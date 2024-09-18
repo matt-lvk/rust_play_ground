@@ -1,3 +1,5 @@
+use pyo3::prelude::*;
+
 extern crate ndarray;
 extern crate rand;
 
@@ -9,7 +11,6 @@ use serde_pickle::{self as pickle, SerOptions};
 use std::fs::File;
 use std::io::Write;
 use pyo3::prelude::*;
-mod plotter;
 
 struct HullWhite {
     nsim : i32,
@@ -19,6 +20,7 @@ struct HullWhite {
     T: usize,
     dt: f64,
 }
+
 fn gaussian_number_generator(mean: f64, std_dev: f64) -> f64 {
     let normal: Normal<f64> = Normal::new(mean, std_dev).unwrap();
     let v: f64 = normal.sample(&mut rand::thread_rng());
@@ -48,7 +50,7 @@ fn short_rate(hull_white: HullWhite, w: Array2<f64>) -> Array2<f64> {
 }
 
 #[pyfunction]
-fn short_rate_generator() {
+fn short_rate_generator() -> Array2<f64> {
     println!("Start");
     let hull_white = HullWhite {
         nsim: 10000,
@@ -63,13 +65,16 @@ fn short_rate_generator() {
     let wiener_mat: Array2<f64> = wiener_lattice_generator(hull_white.nsim, hull_white.T, hull_white.dt);
     let short_rate_array: Array2<f64> = short_rate(hull_white, wiener_mat);
 
-    let expected_rate: Array1<f64> = short_rate_array.mean_axis(Axis(0)).unwrap();
+    // let expected_rate: Array1<f64> = short_rate_array.mean_axis(Axis(0)).unwrap();
 
-    println!("t: {}", expected_rate);
+    return short_rate_array
+    // println!("t: {}", expected_rate);
 
 }
 
-fn string_sum(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(hull_white, m)?)?;
+#[pymodule]
+fn hull_white_py(m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_function(wrap_pyfunction!(short_rate_generator, m)?)?;
     Ok(())
 }
+
