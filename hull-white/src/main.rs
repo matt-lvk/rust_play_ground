@@ -46,7 +46,7 @@ fn short_rate(hull_white: HullWhite, w: Array2<f64>) -> Array2<f64> {
 fn main() {
     println!("Start");
     let hull_white = HullWhite {
-        nsim: 10000,
+        nsim: 250000,
         a: 0.1,
         b: 1.0,
         sigma: 0.1,
