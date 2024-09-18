@@ -1,9 +1,16 @@
 extern crate ndarray;
 extern crate rand;
+extern crate csv;
+extern crate ndarray_csv;
 
 use ndarray::prelude::*;
+use ndarray::{Array, Array2};
+use ndarray_csv::{Array2Reader, Array2Writer};
 use rand_distr::{Normal, Distribution};
 use rand::prelude::*;
+use csv::{ReaderBuilder, WriterBuilder};
+use std::fs::File;
+use std::error::Error;
 
 mod plotter;
 
@@ -43,10 +50,10 @@ fn short_rate(hull_white: HullWhite, w: Array2<f64>) -> Array2<f64> {
     return r;
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn Error>> {
     println!("Start");
     let hull_white = HullWhite {
-        nsim: 250000,
+        nsim: 1000,
         a: 0.1,
         b: 1.0,
         sigma: 0.1,
@@ -60,7 +67,21 @@ fn main() {
 
     let expected_rate: Array1<f64> = short_rate_array.mean_axis(Axis(0)).unwrap();
 
-    println!("t: {}", expected_rate);
+    println!("t: {}", short_rate_array);
+
+    {
+        let file = File::create("test.csv")?;
+        let mut writer = WriterBuilder::new().has_headers(false).from_writer(file);
+        writer.serialize_array2(&short_rate_array)?;
+    }
+
+     // Read an array back from the file
+    // let file = File::open("test.csv")?;
+    // let mut reader = ReaderBuilder::new().has_headers(false).from_reader(file);
+    // let array_read: Array2<f64> = reader.deserialize_array2((2, 3))?;
+
+    // assert_eq!(array_read, short_rate_array);
+    Ok(())
 
     // plotter::plot_single_graph(t_linspace, short_rate_array);
 }
