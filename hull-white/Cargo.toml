@@ -1,26 +1,11 @@
 [package]
-name = "hull_white"
+name = "hull-white"
 version = "0.1.0"
 edition = "2021"
-
-[lib]
-# The name of the native library. This is the name which will be used in Python to import the
-# library (i.e. `import string_sum`). If you change this, you must also change the name of the
-# `#[pymodule]` in `src/lib.rs`.
-name = "hull_white"
-# "cdylib" is necessary to produce a shared library for Python to import from.
-#
-# Downstream Rust code (including code in `bin/`, `examples/`, and `tests/`) will not be able
-# to `use string_sum;` unless the "rlib" or "lib" crate type is also included, e.g.:
-# crate-type = ["cdylib", "rlib"]
-crate-type = ["cdylib"]
 
 [dependencies]
 ndarray = "0.15"
 plotpy = "1.7.1"
 plotters = "0.3"
-pyo3 = { version = "0.22.3", features = ["extension-module"] }
 rand = "0.8.5"
 rand_distr = "0.4.3"
-serde = "1.0.210"
-serde-pickle = "1.1.1"

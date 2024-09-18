@@ -4,11 +4,7 @@ extern crate rand;
 use ndarray::prelude::*;
 use rand_distr::{Normal, Distribution};
 use rand::prelude::*;
-use serde::{Serialize, Deserialize};
-use serde_pickle::{self as pickle, SerOptions};
-use std::fs::File;
-use std::io::Write;
-use pyo3::prelude::*;
+
 mod plotter;
 
 struct HullWhite {
@@ -47,8 +43,7 @@ fn short_rate(hull_white: HullWhite, w: Array2<f64>) -> Array2<f64> {
     return r;
 }
 
-#[pyfunction]
-fn short_rate_generator() {
+fn main() {
     println!("Start");
     let hull_white = HullWhite {
         nsim: 10000,
@@ -67,9 +62,5 @@ fn short_rate_generator() {
 
     println!("t: {}", expected_rate);
 
-}
-
-fn string_sum(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(hull_white, m)?)?;
-    Ok(())
+    // plotter::plot_single_graph(t_linspace, short_rate_array);
 }
